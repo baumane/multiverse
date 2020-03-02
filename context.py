@@ -4,6 +4,7 @@ class Context(object):
   def __init__(self):
     self.plt = {}
     self.oldbase = 0x0
+    self.oldsize = 0x0
     self.newbase = 0x09000000
     self.lookup_function_offset = 0x8f
     self.secondary_lookup_function_offset = 0x8f #ONLY used when rewriting ONLY main executable

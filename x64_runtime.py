@@ -352,6 +352,13 @@ class X64Runtime(object):
 	%s
     	mov QWORD PTR [rsp-16], %s
   	jmp [rsp-16]'''
+    # Ensure that the number of bytes that we restore does not exceed
+    # the length of the text section, or else we will overwrite bytes
+    # not in the text section with zeroes, as we only pull bytes from
+    # .text
+    restore_length = 0x1000 - (self.context.oldbase % 0x1000)
+    if self.context.oldsize < restore_length:
+      restore_length = self.context.oldsize
     restoretext = '''
 	push rax		
 	push rdi
@@ -380,7 +387,7 @@ class X64Runtime(object):
 	pop rsi
 	pop rdi
 	pop rax
-    ''' % ( (self.context.oldbase/0x1000)*0x1000, self.context.global_lookup - 0x20000, self.context.oldbase, 0x1000-(self.context.oldbase%0x1000), (self.context.oldbase/0x1000)*0x1000 )
+    ''' % ( (self.context.oldbase/0x1000)*0x1000, self.context.global_lookup - 0x20000, self.context.oldbase, restore_length, (self.context.oldbase/0x1000)*0x1000 )
     
     return _asm(auxvec_template%(self.context.global_sysinfo,self.context.global_lookup+self.context.popgm_offset,restoretext if self.context.move_phdrs_to_text else '',self.context.newbase+entry))
 
